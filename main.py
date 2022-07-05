@@ -1,67 +1,134 @@
+import checker_f as cf
+import fileinput
+import string
 
-def check_var_name(word):
-	for i in word:
-		if i not in valid_var_name:
-			return False
-	return True
+#this list contains all the instructions in the text file
+list_instruction=[]
 
-def dict_making(list_instruction,count,var_flag,variables,var_num):
-	for i in list_instruction:
-		print(i)
-		if(len(i)==2 and i[0]=="var" and var_flag==1 and i[1] not in variables):
-			variables[i[1]]=0
-			var_num+=1
+#dictionary contains the variables as their key and the their memory adress as their value
+variables={}
 
-		elif(len(i)==2 and i[0]=="var" and var_flag==1 and i[1] in variables):
-			print("General Syntax Error: Redeclaration of already declared variable.")
+#dictionary contains the labels as their key and the their memory adress as their value
+labels={}
 
-		elif(len(i)==2 and i[0]=="var" and var_flag==0):
-			print("Syntax Error: Variables not declared at the beginning and being declared in between")
+#list contains pc having var as their first element but length is not acc to the syntax 
+invalid_var_arg=[]
 
-		elif (len(i)==2 and i[0]!="var"):
-			instructions.append(i)
-			count+=1
+#list contains pc having redeclaratioin of the variable.
+error_duplicate_var=[]
 
-		elif (len(i)==1 and i[0][-1]==":" and i[0][:-1] not in labels):
-			labels[i[0][:-1]]=0
-			count+=1
+#list contains pc having redeclaratioin of the label.
+error_duplicate_lbl=[]
 
-		elif (len(i)==1 and i[0][-1]==":" and i[0][:-1] in labels):
-			print("General Syntax Error: Redeclaration of already declared label.")
-			count+=1
+#list contains pc having declaratioin of the variable in beween.
+error_in_between_var=[]
 
-		else:
-			instructions.append(i)
-			count =count+1
-	return count,var_num
+#goes through each instruct in a text file one by one
+pc=0
 
+#goes through only those instruct in a text file that does not specify any variable declarartion
+count=0
 
-if __name__ == '__main__':
-	import inst_type_check as check
-	import fileinput
-	import string
+#var_flag==1 only when variables are declared in start of the program and it goes to 0. instantly when the instruction is not var and will never change to 1 again
+var_flag=1
 
-	list_instruction = []
+# def check_var_name(word):
+# 	for i in word:
+# 		if i not in valid_var_name:
+# 			return False
+# 	return True
 
-	valid_var_name = list(string.ascii_lowercase + string.ascii_uppercase + string.digits + '_')
-
-	instructions = []
-	variables = {}
-	var_num=0
-	labels = {}
-	count=0
-
-	pc = 0
-
-	var_flag=1
-	with fileinput.input(files=('test.txt')) as f:
+with fileinput.input(files=('test.txt')) as f:
 		for line in f:
 			l=line.split()
 			list_instruction.append(l)
-			#print(list_instruction[pc])
-			pc += 1
-	count,var_num=dict_making(list_instruction,count,var_flag,variables,var_num)
-	print(count)
-	print(var_num)
-	for i in instructions:
-		print(i)
+
+for i in (list_instruction):
+	#var xyz here xyz is already a declared variable
+	if(len(i)==2 and i[0]=="var" and i[1] in variables):
+		error_duplicate_var.append(pc)
+
+	#var xyz here xyz is a newly declared variable
+	elif(len(i)==2 and i[0]=="var" and i[1] not in variables):
+		# newly declared variable
+		variables[i[1]]=0
+
+	#var xyz adef sf here invalid argument number
+	elif(len(i)!=2 and i[0]=="var"):
+		invalid_var_arg.append(pc)
+
+	#foo: a newly declared variable actually and assigning them the memory adress actually
+	elif (i[0][-1]==":" and i[0][:-1] not in labels and i[0]!="var"):
+		# new label declared
+		labels[i[0][:-1]]=count
+		count+=1
+
+	#foo: a redeclared variable actually
+	elif (i[0][-1]==":" and i[0][:-1] in labels and i[0]!="var"):
+		error_duplicate_lbl.append(pc)
+		count+=1
+
+	#foo: fv vfe
+	elif(i[0]!="var"):
+		count+=1
+
+	#we are going to new instruction
+	pc+=1
+
+last=pc-1
+
+#again checking instruction from the start again
+pc=0
+
+
+for i in (list_instruction):
+	#now we are checking whether or not were there any variable declaration in between the programme
+	if(i[0]=="var" and flag==0):
+		error_in_between_var.append(pc)
+
+	#now we are assigning memory adress to correctly declared variables
+	elif(i[0]=="var" and flag==1):
+		variables[i[1]]=count
+		count+=1
+
+	#now here if new inst except that of variable start then it is the flag=0
+	else:
+		flag=0
+	pc+=1
+
+pc=0
+
+all_err=[]
+sign=[]
+
+for i in (list_instruction):
+	if pc in error_in_between_var:
+		print(f"Syntax Error:line {pc}: Variables not declared at the beginning and being declared in between")
+		all_err.append(0)
+
+	elif pc in error_duplicate_var:
+		print(f"General Syntax Error:line {pc}: Redeclaration of already declared label.")
+		all_err.append(0)
+
+	elif pc==last and i[0]!="hlt":
+		print(f"Syntax error: line {pc} : Missing hlt instruction at the end")
+		all_err.append(0)
+
+	elif pc!=last and i[0]=="hlt":
+		print(f"Syntax error: line {pc} : hlt not being used as the last instruction")
+		all_err.append(0)
+
+	elif pc in invalid_var_arg:
+		print(f"Syntax Error: line {pc}: Invalid number of arguments to declare a variable")
+		all_err.append(0)
+
+	elif pc in error_duplicate_lbl:
+		print(f"General Syntax Error: line {pc}: Redeclaration of already declared label.")
+		all_err.append(0)
+
+	elif i[0][:-1] in labels:
+		all_err.append(cf.check_intruc(i[1:],pc))
+
+	else:
+		all_err.append(cf.check_intruc(i,pc))
+	pc+=1
