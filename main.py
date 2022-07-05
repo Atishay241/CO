@@ -4,6 +4,7 @@ import string
 import machine_code_converter as mc
 import opcode as op
 
+
 #this list contains all the instructions in the text file
 list_instruction=[]
 
@@ -40,10 +41,19 @@ var_flag=1
 # 			return False
 # 	return True
 
-with fileinput.input(files=('test.txt')) as f:
-		for line in f:
-			l=line.split()
-			list_instruction.append(l)
+#Taking input from terminal
+import sys
+l=sys.stdin.read().splitlines()
+for i in l:
+	list_instruction.append(i.split())
+
+
+# with fileinput.input(files=('test.txt')) as f:
+# 		for line in f:
+
+# 			l=line.split()
+# 			list_instruction.append(l)
+
 
 for i in (list_instruction):
 	#var xyz here xyz is already a declared variable
@@ -114,6 +124,7 @@ all_err=[]
 # print(error_in_between_var)
 # print(all_err)
 
+print(list_instruction)
 
 for i in (list_instruction):
 
