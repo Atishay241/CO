@@ -1,30 +1,33 @@
 import opcode as op
 import machine_code_converter as mc
 import string
-import main
 
-def check_intruc(instruction,pc):
+
+def check_intruc(instruction,pc,variables,labels):
     op.FLAG["V"]=0
     op.FLAG["G"]=0
     op.FLAG["L"]=0
     op.FLAG["E"]=0
 
-    if len(instruction!=4):
+    if(len(instruction)==0):
+        return 1
+
+    if len(instruction)!=4:
             # add r1 r2
-        if instruction[0] in op.opcode_type_A:
+        if len(instruction)>0 and instruction[0] in op.opcode_type_A:
             print(f'General Syntax Error: line {pc}: Invalid number of arguments to perform the {instruction[0]} operation')
             return 0
 
         elif len(instruction)!=3:
 
             # div r3 r4 r5
-            if (instruction[0] in op.opcode_type_B) or (instruction[0] in op.opcode_type_C) or (instruction[0] in op.code_type_D):
+            if (instruction[0] in op.opcode_type_B) or (instruction[0] in op.opcode_type_C) or (instruction[0] in op.opcode_type_D):
                 print(f'General Syntax Error:line {pc}: Invalid number of arguments to perform the {instruction[0]} operation')
                 return 0
 
             elif len(instruction)!=2:
 
-                if (instruction[0] in op.opcode_type_E):
+                if len(instruction)>0 and (instruction[0] in op.opcode_type_E):
                     print(f'General Syntax Error:line {pc}: Invalid number of arguments to perform the {instruction[0]} operation')
                     return 0
 
@@ -41,7 +44,7 @@ def check_intruc(instruction,pc):
                         return 1
                         
                 else:
-                    if (instruction[0] not in op.opcode_type_F):
+                    if len(instruction)>0 and (instruction[0] not in op.opcode_type_F):
                         print(f"Syntax Error: [TYPO] :line {pc}: Invalid instruction name is used")
                         return 0
 
@@ -52,7 +55,7 @@ def check_intruc(instruction,pc):
                 # here length of instruction = 2 and opcode can be of E type or can be a variable declaration.
 
                 # vhfv  vbfrvjh
-                if (instruction[0] not in op.opcode_type_E):
+                if len(instruction)>0 and (instruction[0] not in op.opcode_type_E):
                     print(f"Syntax Error: [TYPO]: line {pc}: Invalid instruction name is used")
                     return 0
 
@@ -65,12 +68,12 @@ def check_intruc(instruction,pc):
                         return 0
 
                     #jmp <var>
-                    elif (instruction[1] not in main.labels) and (instruction[1] in main.variables):
+                    elif (instruction[1] not in labels) and (instruction[1] in variables):
                         print(f"Syntax Error: line {pc}: Misuse of variables as labels")
                         return 0
 
                     #jmp dbhvj
-                    elif (instruction[1] not in main.labels):
+                    elif (instruction[1] not in labels):
                         print(f"Syntax Error: line {pc}: Use of undefined labels")
                         return 0
 
@@ -83,7 +86,7 @@ def check_intruc(instruction,pc):
         # here length of instruction = 3 and opcode can be of B or C or D type.
 
             # kare R1 R2
-            if (instruction[0] not in op.opcode_type_B) and (instruction[0] not in op.opcode_type_C) and (instruction[0] not in op.code_type_D):
+            if (instruction[0] not in op.opcode_type_B) and (instruction[0] not in op.opcode_type_C) and (instruction[0] not in op.opcode_type_D):
                 print(f"Syntax Error: [TYPO] : line {pc}: Invalid instruction name is used")
                 return 0
 
@@ -214,7 +217,7 @@ def check_intruc(instruction,pc):
                         op.Reg_val[instruction[2]]=a
                         return "C"
 
-            elif (instruction[0] in op.opcode_type_D):  # ld,st
+            elif len(instruction)>0 and (instruction[0] in op.opcode_type_D):  # ld,st
 
                 #ld FLAGS gyguyv
                 if (instruction[1] == "FLAGS") or (instruction[2] == "FLAGS"):
@@ -222,35 +225,35 @@ def check_intruc(instruction,pc):
                     return 0
 
                 #ld ro1 gvgvg
-                elif (instruction[1] not in op.register):
+                elif len(instruction)>0 and (instruction[1] not in op.register):
                     print(f"Syntax Error: [TYPO] :line {pc}: Invalid registers are used")
                     return 0
 
                 #ld R1 gcgcgh
-                elif (instruction[2] not in main.variables) and (instruction[2] not in main.labels):
+                elif (instruction[2] not in variables) and (instruction[2] not in labels):
                     print(f"Syntax Error: line {pc}: Use of undefined variable")
                     return 0
 
                 #ld R1 <lbl>
-                elif (instruction[2] not in main.variables) and (instruction[2] in main.labels):
+                elif (instruction[2] not in variables) and (instruction[2] in labels):
                     print(f"Syntax Error: line {pc}: Misuse of labels as variables")
                     return 0
 
                 else:
                     #ld R1 x
                     if(instruction[0]=="ld"):
-                        op.Reg_val[instruction[1]]=main.variables[instruction[2]]
+                        # op.Reg_val[instruction[1]]=variables[instruction[2]]
                         return "D"
 
                     #st R1 x
                     elif(instruction[0]=="st"):
-                        main.variables[instruction[2]]=op.Reg_val[instruction[1]]
+                        # variables[instruction[2]]=op.Reg_val[instruction[1]]
                         return "D"
     else:
         #if instruction==4 here we have taken all possible error that could have been in case of the opcode_type_A
 
             # fuclk r2 r4 e3
-        if instruction[0] not in op.opcode_type_A:
+        if len(instruction)>0 and instruction[0] not in op.opcode_type_A:
             print(f"Syntax Error: [TYPO] : line {pc}: Invalid instruction name is used")
             return 0
 

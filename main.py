@@ -1,6 +1,8 @@
 import checker_f as cf
 import fileinput
 import string
+import machine_code_converter as mc
+import opcode as op
 
 #this list contains all the instructions in the text file
 list_instruction=[]
@@ -51,25 +53,25 @@ for i in (list_instruction):
 	#var xyz here xyz is a newly declared variable
 	elif(len(i)==2 and i[0]=="var" and i[1] not in variables):
 		# newly declared variable
-		variables[i[1]]=0
+		variables[i[1]]=0	
 
 	#var xyz adef sf here invalid argument number
-	elif(len(i)!=2 and i[0]=="var"):
+	elif(len(i)>=1 and len(i)!=2 and i[0]=="var"):
 		invalid_var_arg.append(pc)
 
 	#foo: a newly declared variable actually and assigning them the memory adress actually
-	elif (i[0][-1]==":" and i[0][:-1] not in labels and i[0]!="var"):
+	elif (len(i)>=1 and i[0][-1]==":" and i[0][:-1] not in labels and i[0]!="var"):
 		# new label declared
 		labels[i[0][:-1]]=count
 		count+=1
 
 	#foo: a redeclared variable actually
-	elif (i[0][-1]==":" and i[0][:-1] in labels and i[0]!="var"):
+	elif (len(i)>=1 and i[0][-1]==":" and i[0][:-1] in labels and i[0]!="var"):
 		error_duplicate_lbl.append(pc)
 		count+=1
 
 	#foo: fv vfe
-	elif(i[0]!="var"):
+	elif(len(i)>=1 and i[0]!="var"):
 		count+=1
 
 	#we are going to new instruction
@@ -83,52 +85,146 @@ pc=0
 
 for i in (list_instruction):
 	#now we are checking whether or not were there any variable declaration in between the programme
-	if(i[0]=="var" and flag==0):
+	if(len(i)>=1 and i[0]=="var" and var_flag==0):
 		error_in_between_var.append(pc)
 
 	#now we are assigning memory adress to correctly declared variables
-	elif(i[0]=="var" and flag==1):
+	elif(len(i)>=1 and i[0]=="var" and var_flag==1):
 		variables[i[1]]=count
 		count+=1
 
+	#for empty lines we ignore them
+	elif(len(i)==0):
+		pass
+	
 	#now here if new inst except that of variable start then it is the flag=0
 	else:
-		flag=0
+		var_flag=0
 	pc+=1
 
 pc=0
 
 all_err=[]
-sign=[]
+
+
+# print(labels)
+# print(variables)
+# print(error_duplicate_lbl)
+# print(error_duplicate_var)
+# print(error_in_between_var)
+# print(all_err)
+
 
 for i in (list_instruction):
+
 	if pc in error_in_between_var:
-		print(f"Syntax Error:line {pc}: Variables not declared at the beginning and being declared in between")
+		print(f"Syntax Error:line {pc+1}: Variables not declared at the beginning and being declared in between")
 		all_err.append(0)
 
 	elif pc in error_duplicate_var:
-		print(f"General Syntax Error:line {pc}: Redeclaration of already declared label.")
+		print(f"General Syntax Error:line {pc+1}: Redeclaration of already declared label.")
 		all_err.append(0)
 
-	elif pc==last and i[0]!="hlt":
-		print(f"Syntax error: line {pc} : Missing hlt instruction at the end")
+	elif len(i)>0 and pc==last and i[0]!="hlt":
+		print(f"Syntax error: line {pc+1} : Missing hlt instruction at the end")
 		all_err.append(0)
 
-	elif pc!=last and i[0]=="hlt":
-		print(f"Syntax error: line {pc} : hlt not being used as the last instruction")
+	elif len(i)>0 and pc!=last and i[0]=="hlt":
+		print(f"Syntax error: line {pc+1} : hlt not being used as the last instruction")
 		all_err.append(0)
 
 	elif pc in invalid_var_arg:
-		print(f"Syntax Error: line {pc}: Invalid number of arguments to declare a variable")
+		print(f"Syntax Error: line {pc+1}: Invalid number of arguments to declare a variable")
 		all_err.append(0)
 
 	elif pc in error_duplicate_lbl:
-		print(f"General Syntax Error: line {pc}: Redeclaration of already declared label.")
+		print(f"General Syntax Error: line {pc+1}: Redeclaration of already declared label.")
 		all_err.append(0)
 
-	elif i[0][:-1] in labels:
-		all_err.append(cf.check_intruc(i[1:],pc))
+	elif  len(i)==2 and i[1] in variables:
+		all_err.append(1)
 
+	elif len(i)>1 and i[0][:-1] in labels:
+		all_err.append(cf.check_intruc(i[1:],pc+1,variables,labels))
+		
 	else:
-		all_err.append(cf.check_intruc(i,pc))
+		all_err.append(cf.check_intruc(i,pc+1,variables,labels))
 	pc+=1
+count=0
+
+
+
+if 0 in all_err:
+	exit()
+
+
+for i in all_err:
+	if i==1:
+		count+=1
+		continue
+	
+	elif i=="A":
+		if(list_instruction[count][0][0:-1] not in labels):
+			print(mc.inst_A(list_instruction[count]))
+		else:
+			print(mc.inst_A(list_instruction[count][1:]))
+
+	elif i=="B":
+		if(list_instruction[count][0][0:-1] not in labels):
+			print(mc.inst_B(list_instruction[count]))
+		else:
+			print(mc.inst_B(list_instruction[count][1:]))
+	
+	elif i=="C":
+		if(list_instruction[count][0][0:-1] not in labels):
+			print(mc.inst_C(list_instruction[count]))
+		else:
+			print(mc.inst_C(list_instruction[count][1:]))
+		
+	elif i=="D":
+		if(list_instruction[count][0][0:-1] not in labels):
+			a=""
+			a+=mc.inst_D(list_instruction[count])
+			b=int(variables[list_instruction[count][2]])
+			c=str(mc.dec_to_bin(b))
+			a+=(8-len(c))*"0"
+			a+=c
+
+		else:
+			a=""
+			a+=mc.inst_D(list_instruction[count][1:])
+			b=int(variables[list_instruction[count][3]])
+			c=str(mc.dec_to_bin(b))
+			a+=(8-len(c))*"0"
+			a+=c
+	
+		print(a)
+	
+	elif i=="E":
+		if(list_instruction[count][0][0:-1] not in labels):
+			a=""
+			a+=mc.inst_E(list_instruction[count])
+			b=int(labels[list_instruction[count][2]])
+			c=str(mc.dec_to_bin(b))
+			a+=(8-len(c))*"0"
+			a+=c
+
+		else:
+			a=""
+			a+=mc.inst_E(list_instruction[count][1:])
+			b=int(labels[list_instruction[count][3]])
+			c=str(mc.dec_to_bin(b))
+			a+=(8-len(c))*"0"
+			a+=c
+	
+		print(a)
+	
+	elif i=="F":
+		print(mc.inst_F(list_instruction[count]))
+		
+
+	
+		
+	count+=1
+		
+	

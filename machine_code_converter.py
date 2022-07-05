@@ -30,10 +30,10 @@ def inst_B(instruction):
     a=""
     a+=op.opcode_type_B[instruction[0]]
     a+=op.register[instruction[1]]
-    num1=instruction[2]
-    b=dec_to_bin(num1)
-    len=len(b)
-    a+=(8-b)*"0"
+    num1=int(instruction[2][1:])
+    b=str(dec_to_bin(num1))
+    c=len(b)
+    a+=(8-c)*"0"
     a+=b
     return a
 
@@ -47,24 +47,22 @@ def inst_C(instruction):
     return a
 
 #here list contains only 3 segments.
-def inst_D(instruction,mem,dict_label):
+def inst_D(instruction):
     a=""
     a+=op.opcode_type_D[instruction[0]]
     a+=op.register[instruction[1]]
     
-
     return a
 
 #here list contains only 1 segment.
-def inst_E(instruction,mem,dict_label):
+def inst_E(instruction):
     a=""
     a+=op.opcode_type_E[instruction[0]]
     
-    
     return a
 
 #here list contains only 1 segment.
-def inst_F(instruction,mem,dict_label):
+def inst_F(instruction):
     a=""
     a+=op.opcode_type_F[instruction[0]]
     a+=11*"0"
