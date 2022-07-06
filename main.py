@@ -124,7 +124,7 @@ all_err=[]
 # print(error_in_between_var)
 # print(all_err)
 
-print(list_instruction)
+
 
 for i in (list_instruction):
 
