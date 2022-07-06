@@ -124,8 +124,15 @@ all_err=[]
 # print(error_in_between_var)
 # print(all_err)
 
+#print(list_instruction)
 
-
+m=last
+#print("-")
+#print(m)
+#print("-")
+while (len(list_instruction[m])==0 and m>0):
+	m-=1
+#print(m)
 for i in (list_instruction):
 
 	if pc in error_in_between_var:
@@ -140,7 +147,8 @@ for i in (list_instruction):
 		print(f"Syntax error: line {pc+1} : Missing hlt instruction at the end")
 		all_err.append(0)
 
-	elif len(i)>0 and pc!=last and i[0]=="hlt":
+	elif len(i)>0 and pc!=last and i[0]=="hlt" and pc!=m:
+		#print(pc)
 		print(f"Syntax error: line {pc+1} : hlt not being used as the last instruction")
 		all_err.append(0)
 
