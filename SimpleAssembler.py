@@ -117,14 +117,14 @@ pc=0
 all_err=[]
 
 
-# print(labels)
-# print(variables)
-# print(error_duplicate_lbl)
-# print(error_duplicate_var)
-# print(error_in_between_var)
-# print(all_err)
+print(labels)
+print(variables)
+print(error_duplicate_lbl)
+print(error_duplicate_var)
+print(error_in_between_var)
+print(all_err)
 
-#print(list_instruction)
+print(list_instruction)
 
 m=last
 #print("-")
@@ -171,7 +171,7 @@ for i in (list_instruction):
 	pc+=1
 count=0
 
-
+print(all_err)
 
 if 0 in all_err:
 	exit()

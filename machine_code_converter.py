@@ -43,7 +43,7 @@ def inst_C(instruction):
     a+=op.opcode_type_C[instruction[0]]
     a+="00000"
     a+=op.register[instruction[1]]
-    a+=op.register[instruction[2]]    
+    a+=op.flag[0]
     return a
 
 #here list contains only 3 segments.
